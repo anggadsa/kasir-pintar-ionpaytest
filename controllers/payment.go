@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"kasir-pintar-ionpaytest/core"
@@ -46,33 +47,39 @@ type Message struct {
 }
 
 type Param struct {
-	amt           string
-	merchantToken string
-	callBackUrl   string
-	cardCvv       string
-	cardHolderNm  string
-	cardNo        string
-	timeStamp     string
-	cardExpYymm   string
-	tXid          string
+	Amt           string `json:"amt"`
+	MerchantToken string `json:"merchantToken"`
+	CallBackUrl   string `json:"callBackUrl"`
+	CardCvv       string `json:"cardCvv"`
+	CardHolderNm  string `json:"cardHolderNm"`
+	CardNo        string `json:"cardNo"`
+	TimeStamp     string `json:"timeStamp"`
+	CardExpYymm   string `json:"cardExpYymm"`
+	TXid          string `json:"tXid"`
 }
 
 func (a *Payment) Show(c *gin.Context) {
 	// params := c.Request.URL.Query()
 	// var (params.Get("tXid"))
 	var param Param
-	param.amt = c.Query("amt")
-	param.merchantToken = c.Query("merchantToken")
-	param.callBackUrl = c.Query("callBackUrl")
-	param.cardCvv = c.Query("cardCvv")
-	param.cardHolderNm = c.Query("cardHolderNm")
-	param.cardNo = c.Query("cardNo")
-	param.timeStamp = c.Query("timeStamp")
-	param.cardExpYymm = c.Query("cardExpYymm")
-	param.tXid = c.Query("tXid")
-	fmt.Println(param)
+	param.Amt = c.Query("amt")
+	param.MerchantToken = c.Query("merchantToken")
+	param.CallBackUrl = c.Query("callBackUrl")
+	param.CardCvv = c.Query("cardCvv")
+	param.CardHolderNm = c.Query("cardHolderNm")
+	param.CardNo = c.Query("cardNo")
+	param.TimeStamp = c.Query("timeStamp")
+	param.CardExpYymm = c.Query("cardExpYymm")
+	param.TXid = c.Query("tXid")
 
-	url := "https://dev.nicepay.co.id/nicepay/direct/v2/payment?timeStamp=" + param.timeStamp + "&tXid=" + param.tXid + "&merchantToken=" + param.merchantToken + "&amt=" + param.amt + "&callBackUrl=" + param.callBackUrl + "&cardNo=4222222222222222&cardExpYymm=" + param.cardExpYymm
+	reqBytes, _ := json.Marshal(param)
+	// fmt.Println("MASUK", string(reqBytes))
+	fmt.Println("MASUK", string(reqBytes))
+
+	// Write Request Log
+	writeLog("request", string(reqBytes), "reqPayment")
+
+	url := "https://dev.nicepay.co.id/nicepay/direct/v2/payment?timeStamp=" + param.TimeStamp + "&tXid=" + param.TXid + "&merchantToken=" + param.MerchantToken + "&amt=" + param.Amt + "&callBackUrl=" + param.CallBackUrl + "&cardNo=4222222222222222&cardExpYymm=" + param.CardExpYymm
 
 	method := "POST"
 	client := &http.Client{}
@@ -182,6 +189,7 @@ func (a *Payment) Show(c *gin.Context) {
 	// if err != nil {
 	// 	panic(err)
 	// }
+	writeLog("payment", string(body), "html")
 
 	c.Data(http.StatusOK, "text/html; charset=utf-8", body)
 	// c.JSON(http.StatusOK, html)
