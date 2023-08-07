@@ -7,25 +7,33 @@ import (
 	"io"
 	"kasir-pintar-ionpaytest/core"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type Inquiry struct {
 	core.Controller
 }
 
-func (a *Inquiry) Show(c *gin.Context) {
+type Status struct {
+	TimeStamp     string `json:"timeStamp"`
+	TXid          string `json:"tXid"`
+	IMid          string `json:"iMid"`
+	ReferenceNo   string `json:"referenceNo"`
+	Amt           string `json:"amt"`
+	MerchantToken string `json:"merchantToken"`
+}
 
-	data, err := io.ReadAll(c.Request.Body)
-	// fmt.Println(data)
+func (a *Inquiry) Show(c *gin.Context) {
+	var status Status
+	c.BindJSON(&status)
+	reqBytes, _ := json.Marshal(&status)
+
+	writeLog("status", string(reqBytes), "reqStatus")
 
 	url := "https://dev.nicepay.co.id/nicepay/direct/v2/inquiry"
 	method := "POST"
-	payload := bytes.NewReader(data)
+	payload := bytes.NewReader(reqBytes)
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
 
@@ -47,21 +55,12 @@ func (a *Inquiry) Show(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	// fmt.Println(string(body))
+
 	var success Success
 	json.Unmarshal([]byte(body), &success)
 
-	// Logging
-	runLogFile, _ := os.OpenFile(
-		"./log/inquiry.log",
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
-		0664,
-	)
-	multi := zerolog.MultiLevelWriter(os.Stdout, runLogFile)
-	log.Logger = zerolog.New(multi)
-	log.Info().
-		Timestamp().
-		Interface(success.ResultMsg, Success(success)).Msg("")
+	// Save Response Log
+	writeLog("status", string(body), "response")
 
 	c.JSON(http.StatusOK, success)
 }

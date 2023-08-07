@@ -29,13 +29,13 @@ func (a *Registration) Index(c *gin.Context) {
 	a.Json(c, result, list)
 }
 
-func writeLog(name string, body string) {
-	if name == "request" { // Request Log
+func writeLog(nameReq string, body string, nameRes string) {
+	if nameRes == "request" { // Request Log
 		var params *models.Registration
 		// fmt.Println("MASUK", body)
 		json.Unmarshal([]byte(body), &params)
 		runLogFile, _ := os.OpenFile(
-			"./log//registration/"+name+".log",
+			"./log/"+nameReq+"/"+nameRes+".log",
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 			0664,
 		)
@@ -43,15 +43,15 @@ func writeLog(name string, body string) {
 		log.Logger = zerolog.New(multi)
 		log.Info().
 			Timestamp().
-			Interface(params.BillingNm, params).Msg("")
+			Interface("Data", params).Msg("")
 
-	} else { // Response Log
+	} else if nameRes == "response" { // Response Log
 		var success Success
 		// fmt.Println("MASUK", body)
 		json.Unmarshal([]byte(body), &success)
 
 		runLogFile, _ := os.OpenFile(
-			"./log//registration/"+name+".log",
+			"./log/"+nameReq+"/"+nameRes+".log",
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
 			0664,
 		)
@@ -59,7 +59,48 @@ func writeLog(name string, body string) {
 		log.Logger = zerolog.New(multi)
 		log.Info().
 			Timestamp().
-			Interface(success.ResultMsg, Success(success)).Msg("")
+			Interface("Data", Success(success)).Msg("")
+	} else if nameRes == "reqStatus" {
+		var status Status
+		json.Unmarshal([]byte(body), &status)
+		runLogFile, _ := os.OpenFile(
+			"./log/status/request.log",
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+			0664,
+		)
+		multi := zerolog.MultiLevelWriter(os.Stdout, runLogFile)
+		log.Logger = zerolog.New(multi)
+		log.Info().
+			// Str("Data", body).
+			Timestamp().
+			Interface("Data", Status(status)).Msg("")
+	} else if nameRes == "reqPayment" {
+		var param Param
+		json.Unmarshal([]byte(body), &param)
+		runLogFile, _ := os.OpenFile(
+			"./log/payment/request.log",
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+			0664,
+		)
+		multi := zerolog.MultiLevelWriter(os.Stdout, runLogFile)
+		log.Logger = zerolog.New(multi)
+		log.Info().
+			// Str("Data", body).
+			Timestamp().
+			Interface("Data", Param(param)).Msg("")
+	} else {
+		runLogFile, _ := os.OpenFile(
+			"./log/payment/response.log",
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+			0664,
+		)
+		multi := zerolog.MultiLevelWriter(os.Stdout, runLogFile)
+		log.Logger = zerolog.New(multi)
+		log.Info().
+			Str("Data", body).
+			Timestamp().
+			Msg("")
+
 	}
 }
 
@@ -71,7 +112,7 @@ func (a *Registration) Store(c *gin.Context) {
 	reqBytes, _ := json.Marshal(&params)
 	fmt.Println(string(reqBytes))
 	// fmt.Println(params)
-	writeLog("request", string(reqBytes))
+	writeLog("registration", string(reqBytes), "request")
 
 	// Save to Database
 	result, _ := new(services.Registration).Create(params)
@@ -103,7 +144,7 @@ func (a *Registration) Store(c *gin.Context) {
 	}
 
 	// Save Response Log
-	writeLog("response", string(body))
+	writeLog("registration", string(body), "response")
 
 	// Send Response to User
 	json.Unmarshal([]byte(body), &success)
