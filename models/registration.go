@@ -1,6 +1,9 @@
 package models
 
+import "kasir-pintar-ionpaytest/core"
+
 type Registration struct {
+	core.Model
 	TimeStamp       string `json:"timeStamp" gorm:"type:numeric"`
 	IMid            string `json:"iMid"`
 	PayMethod       string `json:"payMethod"`
@@ -34,9 +37,4 @@ type Registration struct {
 	InstmntType     string `json:"instmntType"`
 	InstmntMon      string `json:"instmntMon"`
 	RecurrOpt       string `json:"recurrOpt"`
-}
-
-// Read implements io.Reader.
-func (*Registration) Read(p []byte) (n int, err error) {
-	panic("unimplemented")
 }
