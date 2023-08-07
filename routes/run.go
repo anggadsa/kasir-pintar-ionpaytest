@@ -22,7 +22,7 @@ func SetupRouter() *gin.Engine {
 		})
 	})
 
-	Registration(r)
+	Route(r)
 
 	r.GET("/test", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, "Hallo")

@@ -9,10 +9,10 @@ import (
 )
 
 type Model struct {
-	ID        int        `json:"id" gorm:"primarykey"`
-	CreatedAt time.Time  `json:"createdAt,omitempty"`
-	UpdatedAt time.Time  `json:"updatedAt,omitempty"`
-	DeletedAt *time.Time `json:"deletedAt,omitempty" gorm:"index"`
+	ID        int        `json:"-" gorm:"primarykey"`
+	CreatedAt time.Time  `json:"-"`
+	UpdatedAt time.Time  `json:"-"`
+	DeletedAt *time.Time `json:"-"`
 }
 
 func (m *Model) Db() *gorm.DB {
